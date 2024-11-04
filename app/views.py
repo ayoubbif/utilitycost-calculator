@@ -1,9 +1,10 @@
 import logging
 from rest_framework import viewsets, status
+from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.conf import settings
@@ -16,6 +17,10 @@ from .services.rate_processor import RateProcessor
 
 logger = logging.getLogger(__name__)
 
+class HomeView(APIView):
+    """View for the main calculator page"""
+    def get(self, request):
+        return render(request, 'index.html')
 class ProjectViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing Project instances.
