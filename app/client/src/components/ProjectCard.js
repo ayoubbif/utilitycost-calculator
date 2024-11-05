@@ -4,118 +4,112 @@ import {
   CardContent,
   CardActions,
   Typography,
-  Button,
-  Box,
-  Divider,
   Grid,
-  Chip
+  Box,
+  Chip,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import BoltIcon from '@mui/icons-material/Bolt';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import PercentIcon from '@mui/icons-material/Percent';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ElectricMeterIcon from '@mui/icons-material/ElectricMeter';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 
-export const ProjectCard = ({ project, onEdit, disabled }) => {
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
-
+export const ProjectCard = ({
+  project,
+  onEdit,
+  onDelete
+}) => {
   return (
     <Card
-      elevation={3}
       sx={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: 8
-        }
+        borderRadius: 2
       }}
     >
-      <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+      <CardContent sx={{ flexGrow: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'medium' }}>
             {project.name}
           </Typography>
-          <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }}>
-            {project.address}
-          </Typography>
+          <Chip
+            label={`${project.selected_rate || 'No Rate Selected'}`}
+            size="small"
+            color={project.selected_rate ? "primary" : "default"}
+          />
         </Box>
-        <Divider sx={{ my: 2 }} />
+
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <BoltIcon color="warning" />
-              <Typography variant="body2">
-                Consumption:
-                <Typography component="span" fontWeight="medium" ml={1}>
-                  {new Intl.NumberFormat().format(project.consumption)} kWh/year
-                </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <LocationOnIcon color="action" fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                {project.address || 'No address provided'}
               </Typography>
             </Box>
           </Grid>
-          <Grid item xs={12}>
+
+          <Grid item xs={12} sm={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <PercentIcon color="info" />
-              <Typography variant="body2">
-                Escalator:
-                <Typography component="span" fontWeight="medium" ml={1}>
-                  {project.percentage}%
-                </Typography>
+              <ElectricMeterIcon color="action" fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                {project.consumption ? `${project.consumption.toLocaleString()} kWh/year` : 'No consumption data'}
               </Typography>
             </Box>
           </Grid>
-          {project.first_year_cost && (
+
+          <Grid item xs={12} sm={6}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <ShowChartIcon color="action" fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                {project.percentage ? `${project.percentage}% Escalator` : 'No escalator set'}
+              </Typography>
+            </Box>
+          </Grid>
+
+          {project.description && (
             <Grid item xs={12}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AttachMoneyIcon color="success" />
-                <Typography variant="body2">
-                  First Year Cost:
-                  <Typography component="span" fontWeight="medium" ml={1}>
-                    {formatCurrency(project.first_year_cost)}
-                  </Typography>
-                </Typography>
-              </Box>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  mt: 1,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {project.description}
+              </Typography>
             </Grid>
           )}
         </Grid>
-        {project.selected_rate && (
-          <Box sx={{ mt: 2 }}>
-            <Chip
-              label={`Selected Rate: ${project.selected_rate}`}
-              color="primary"
-              size="small"
-              sx={{
-                borderRadius: 1,
-                '& .MuiChip-label': {
-                  px: 1
-                }
-              }}
-            />
-          </Box>
-        )}
       </CardContent>
-      <Divider />
-      <CardActions sx={{ px: 2, py: 1.5, justifyContent: 'flex-end', gap: 1 }}>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<EditIcon />}
-          onClick={() => onEdit(project)}
-          disabled={disabled}
-          sx={{
-            textTransform: 'none'
-          }}
-        >
-          Edit
-        </Button>
+
+      <CardActions sx={{ justifyContent: 'flex-end', px: 2, pb: 2 }}>
+        <Tooltip title="Edit Project">
+          <IconButton
+            size="small"
+            onClick={() => onEdit(project)}
+            sx={{ mr: 1 }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Delete Project">
+          <IconButton
+            size="small"
+            onClick={() => onDelete(project)}
+            color="error"
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </CardActions>
     </Card>
   );
