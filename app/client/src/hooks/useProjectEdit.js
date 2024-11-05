@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export const useProjectEdit = ({ project, calculateRates, selectRate, initialRates = [], onSave, onClose }) => {
+export const useProjectEdit = ({ project, selectRate, initialRates = [], onSave, onClose }) => {
   const [editedProject, setEditedProject] = useState({
     name: '',
     address: '',
@@ -9,9 +9,6 @@ export const useProjectEdit = ({ project, calculateRates, selectRate, initialRat
     percentage: '',
     selectedRate: ''
   });
-
-  const [availableRates, setAvailableRates] = useState([]);
-  const [loadingRates, setLoadingRates] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -23,30 +20,8 @@ export const useProjectEdit = ({ project, calculateRates, selectRate, initialRat
         percentage: project.percentage || '',
         selectedRate: project.selected_rate || ''
       });
-
-      if (initialRates.length > 0) {
-        setAvailableRates(initialRates.map(rate => ({
-          ...rate,
-          uniqueId: `${rate.rate_name}`
-        })));
-      } else {
-        const fetchRates = async () => {
-          setLoadingRates(true);
-          try {
-            const rates = await calculateRates(project.id);
-            setAvailableRates(rates.map(rate => ({
-              ...rate,
-              uniqueId: `${rate.rate_name}`
-            })));
-          } catch (error) {
-            console.error('Error fetching rates:', error);
-          }
-          setLoadingRates(false);
-        };
-        fetchRates();
-      }
     }
-  }, [project, calculateRates, initialRates]);
+  }, [project]);
 
   const handleInputChange = (field) => (event) => {
     setEditedProject({ ...editedProject, [field]: event.target.value });
@@ -56,7 +31,6 @@ export const useProjectEdit = ({ project, calculateRates, selectRate, initialRat
     e.preventDefault();
 
     const [rateName, utility] = editedProject.selectedRate.split(' - ');
-
     if (editedProject.selectedRate && editedProject.selectedRate !== project.selected_rate) {
       await selectRate(project.id, {
         rate_name: rateName,
@@ -79,8 +53,11 @@ export const useProjectEdit = ({ project, calculateRates, selectRate, initialRat
 
   return {
     editedProject,
-    availableRates,
-    loadingRates,
+    availableRates: initialRates.map(rate => ({
+      ...rate,
+      uniqueId: `${rate.rate_name}`
+    })),
+    loadingRates: false,
     handleInputChange,
     handleSubmit
   };
