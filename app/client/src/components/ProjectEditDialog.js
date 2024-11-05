@@ -7,12 +7,7 @@ import {
   Button,
   TextField,
   Grid,
-  IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  CircularProgress
+  IconButton
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
@@ -23,22 +18,14 @@ export const ProjectEditDialog = ({
   open,
   onClose,
   onSave,
-  disabled,
-  calculateRates,
-  selectRate,
-  initialRates
+  disabled
 }) => {
   const {
     editedProject,
-    availableRates,
-    loadingRates,
     handleInputChange,
     handleSubmit
   } = useProjectEdit({
     project,
-    calculateRates,
-    selectRate,
-    initialRates,
     onSave,
     onClose
   });
@@ -120,33 +107,6 @@ export const ProjectEditDialog = ({
                 onChange={handleInputChange('description')}
               />
             </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Rate</InputLabel>
-                <Select
-                  value={editedProject.selectedRate}
-                  label="Rate"
-                  onChange={handleInputChange('selectedRate')}
-                  disabled={loadingRates}
-                >
-                  {loadingRates ? (
-                    <MenuItem disabled>
-                      <CircularProgress size={20} sx={{ mr: 1 }} />
-                      Loading rates...
-                    </MenuItem>
-                  ) : (
-                    availableRates.map((rate) => (
-                      <MenuItem
-                        key={rate.uniqueId}
-                        value={rate.uniqueId}
-                      >
-                        {rate.uniqueId}
-                      </MenuItem>
-                    ))
-                  )}
-                </Select>
-              </FormControl>
-            </Grid>
           </Grid>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
@@ -155,7 +115,7 @@ export const ProjectEditDialog = ({
             type="submit"
             variant="contained"
             startIcon={<SaveIcon />}
-            disabled={disabled || loadingRates}
+            disabled={disabled}
           >
             Save Changes
           </Button>
