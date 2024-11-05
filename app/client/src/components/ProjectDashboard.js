@@ -11,7 +11,6 @@ import {
 import { useProjects } from '../hooks/useProjects';
 import { ProjectForm } from './ProjectForm';
 import { ProjectCard } from './ProjectCard';
-import { RatesTable } from './RatesTable';
 import { ProjectEditDialog } from './ProjectEditDialog';
 
 const ProjectDashboard = () => {
@@ -22,6 +21,7 @@ const ProjectDashboard = () => {
     setError,
     createProject,
     updateProject,
+    deleteProject,
     calculateRates,
     selectRate
   } = useProjects();
@@ -45,22 +45,6 @@ const ProjectDashboard = () => {
     }
   };
 
-  const handleSelectRate = async (rateData) => {
-    try {
-      const success = await selectRate(selectedProject, rateData);
-      if (success) {
-        // Clear rates view and update the projects list
-        setCalculatedRates([]);
-        setSelectedProject(null);
-
-        // Show success message or handle UI update
-        return true;
-      }
-    } catch (error) {
-      setError(error.message);
-      return false;
-    }
-  };
 
   const handleEditClick = async (project) => {
     setProjectToEdit(project);
@@ -105,7 +89,6 @@ const ProjectDashboard = () => {
     try {
       const success = await createProject(projectData);
       if (success) {
-        // Clear any existing rates view
         setCalculatedRates([]);
         setSelectedProject(null);
       }
@@ -115,6 +98,25 @@ const ProjectDashboard = () => {
       return false;
     }
   };
+
+  const handleDeleteProject = async (projectId) => {
+    if (!projectId) {
+      setError('Invalid project ID');
+      return false;
+    }
+
+    try {
+      const success = await deleteProject(projectId);
+      if (success && selectedProject === projectId) {
+        setCalculatedRates([]);
+        setSelectedProject(null);
+      }
+      return success;
+    } catch (error) {
+      setError(error.message || 'Failed to delete project');
+      return false;
+    }
+  }
 
   return (
     <Container maxWidth="lg">
@@ -141,17 +143,15 @@ const ProjectDashboard = () => {
               <Grid item xs={12} md={6} key={project.id}>
                 <ProjectCard
                   project={project}
-                  onCalculate={handleCalculateRates}
-                  onEdit={handleEditClick}
-                  disabled={loading || calculating}
-                  selected={selectedProject === project.id}
+                  onCalculate={() => handleCalculateRates(project.id)}
+                  onEdit={() => handleEditClick(project)}
+                  onDelete={() => handleDeleteProject(project.id)}
                 />
               </Grid>
             ))}
           </Grid>
         </Box>
 
-        {/* Global loading indicator */}
         <Backdrop
           sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
           open={loading || calculating}
