@@ -55,6 +55,23 @@ export const useProjects = () => {
     }
   };
 
+  const deleteProject = async (projectId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await fetchWithCSRF(`/api/projects/${projectId}/`, {
+        method: 'DELETE'
+      });
+      await fetchProjects();
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const calculateRates = async (projectId) => {
     try {
       setLoading(true);
@@ -105,6 +122,7 @@ export const useProjects = () => {
     setError,
     createProject,
     updateProject,
+    deleteProject,
     calculateRates,
     selectRate
   };
