@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
+import { useProjectEdit } from '../hooks/useProjectEdit';
 
 export const ProjectEditDialog = ({
   project,
@@ -25,79 +26,22 @@ export const ProjectEditDialog = ({
   disabled,
   calculateRates,
   selectRate,
-  initialRates = []
+  initialRates
 }) => {
-  const [editedProject, setEditedProject] = useState({
-    name: '',
-    address: '',
-    description: '',
-    consumption: '',
-    percentage: '',
-    selectedRate: ''
+  const {
+    editedProject,
+    availableRates,
+    loadingRates,
+    handleInputChange,
+    handleSubmit
+  } = useProjectEdit({
+    project,
+    calculateRates,
+    selectRate,
+    initialRates,
+    onSave,
+    onClose
   });
-
-  const [availableRates, setAvailableRates] = useState([]);
-  const [loadingRates, setLoadingRates] = useState(false);
-
-  useEffect(() => {
-    if (project) {
-      setEditedProject({
-        name: project.name || '',
-        address: project.address || '',
-        description: project.description || '',
-        consumption: project.consumption || '',
-        percentage: project.percentage || '',
-        selectedRate: project.selected_rate || ''
-      });
-
-      if (initialRates.length > 0) {
-        setAvailableRates(initialRates.map(rate => ({
-          ...rate,
-          uniqueId: `${rate.rate_name} - ${rate.utility}`
-        })));
-      } else {
-        const fetchRates = async () => {
-          setLoadingRates(true);
-          try {
-            const rates = await calculateRates(project.id);
-            setAvailableRates(rates.map(rate => ({
-              ...rate,
-              uniqueId: `${rate.rate_name} - ${rate.utility}`
-            })));
-          } catch (error) {
-            console.error('Error fetching rates:', error);
-          }
-          setLoadingRates(false);
-        };
-        fetchRates();
-      }
-    }
-  }, [project, calculateRates, initialRates]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const [rateName, utility] = editedProject.selectedRate.split(' - ');
-
-    if (editedProject.selectedRate && editedProject.selectedRate !== project.selected_rate) {
-      await selectRate(project.id, {
-        rate_name: rateName,
-        utility: utility
-      });
-    }
-
-    const success = await onSave(project.id, {
-      name: editedProject.name,
-      address: editedProject.address,
-      description: editedProject.description,
-      consumption: editedProject.consumption,
-      percentage: editedProject.percentage
-    });
-
-    if (success) {
-      onClose();
-    }
-  };
 
   return (
     <Dialog
@@ -133,9 +77,7 @@ export const ProjectEditDialog = ({
                 fullWidth
                 label="Project Name"
                 value={editedProject.name}
-                onChange={(e) =>
-                  setEditedProject({ ...editedProject, name: e.target.value })
-                }
+                onChange={handleInputChange('name')}
                 required
               />
             </Grid>
@@ -144,12 +86,7 @@ export const ProjectEditDialog = ({
                 fullWidth
                 label="Address"
                 value={editedProject.address}
-                onChange={(e) =>
-                  setEditedProject({
-                    ...editedProject,
-                    address: e.target.value
-                  })
-                }
+                onChange={handleInputChange('address')}
                 required
               />
             </Grid>
@@ -159,12 +96,7 @@ export const ProjectEditDialog = ({
                 type="number"
                 label="Yearly Consumption (kWh)"
                 value={editedProject.consumption}
-                onChange={(e) =>
-                  setEditedProject({
-                    ...editedProject,
-                    consumption: e.target.value
-                  })
-                }
+                onChange={handleInputChange('consumption')}
                 required
               />
             </Grid>
@@ -174,12 +106,7 @@ export const ProjectEditDialog = ({
                 type="number"
                 label="Escalator Percentage"
                 value={editedProject.percentage}
-                onChange={(e) =>
-                  setEditedProject({
-                    ...editedProject,
-                    percentage: e.target.value
-                  })
-                }
+                onChange={handleInputChange('percentage')}
                 required
               />
             </Grid>
@@ -190,12 +117,7 @@ export const ProjectEditDialog = ({
                 rows={3}
                 label="Description"
                 value={editedProject.description}
-                onChange={(e) =>
-                  setEditedProject({
-                    ...editedProject,
-                    description: e.target.value
-                  })
-                }
+                onChange={handleInputChange('description')}
               />
             </Grid>
             <Grid item xs={12}>
@@ -204,12 +126,7 @@ export const ProjectEditDialog = ({
                 <Select
                   value={editedProject.selectedRate}
                   label="Rate"
-                  onChange={(e) =>
-                    setEditedProject({
-                      ...editedProject,
-                      selectedRate: e.target.value
-                    })
-                  }
+                  onChange={handleInputChange('selectedRate')}
                   disabled={loadingRates}
                 >
                   {loadingRates ? (
