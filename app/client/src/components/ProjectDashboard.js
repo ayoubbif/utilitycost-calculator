@@ -4,7 +4,7 @@ import {
   Typography,
   Alert,
   Box,
-  Grid,
+  Stack,
   CircularProgress,
   Backdrop
 } from '@mui/material';
@@ -26,13 +26,12 @@ const ProjectDashboard = () => {
     selectRate
   } = useProjects();
 
-  const [projectRates, setProjectRates] = useState({}); // Store rates by project ID
+  const [projectRates, setProjectRates] = useState({});
   const [calculating, setCalculating] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [projectToEdit, setProjectToEdit] = useState(null);
 
   const handleCalculateRates = async (projectId) => {
-    // Only calculate if we haven't already
     if (!projectRates[projectId]) {
       setCalculating(true);
       try {
@@ -63,16 +62,13 @@ const ProjectDashboard = () => {
     try {
       const success = await updateProject(projectId, projectData);
       if (success) {
-        // Recalculate rates only if consumption or percentage changed
         if (projectData.consumption !== projectToEdit.consumption ||
             projectData.percentage !== projectToEdit.percentage) {
-          // Clear existing rates for this project
           setProjectRates(prev => {
             const newRates = { ...prev };
             delete newRates[projectId];
             return newRates;
           });
-          // Trigger new calculation
           await handleCalculateRates(projectId);
         }
         return true;
@@ -103,7 +99,6 @@ const ProjectDashboard = () => {
     try {
       const success = await deleteProject(projectId);
       if (success) {
-        // Remove rates for deleted project
         setProjectRates(prev => {
           const newRates = { ...prev };
           delete newRates[projectId];
@@ -132,26 +127,25 @@ const ProjectDashboard = () => {
 
         <ProjectForm onSubmit={handleCreateProject} disabled={loading} />
 
-        <Box sx={{ mt: 4, mb: 2 }}>
+        <Box sx={{ mt: 8, mb: 4 }}>
           <Typography variant="h6" gutterBottom>
             Your Projects
           </Typography>
 
-          <Grid container spacing={3}>
+          <Stack spacing={2}>
             {projects.map((project) => (
-              <Grid item xs={12} md={6} key={project.id}>
-                <ProjectCard
-                  project={project}
-                  onEdit={() => handleEditClick(project)}
-                  onDelete={() => handleDeleteProject(project.id)}
-                  calculatedRates={projectRates[project.id] || []}
-                  onCalculateRates={() => handleCalculateRates(project.id)}
-                  selectRate={selectRate}
-                  calculating={calculating}
-                />
-              </Grid>
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onEdit={() => handleEditClick(project)}
+                onDelete={() => handleDeleteProject(project.id)}
+                calculatedRates={projectRates[project.id] || []}
+                onCalculateRates={() => handleCalculateRates(project.id)}
+                selectRate={selectRate}
+                calculating={calculating}
+              />
             ))}
-          </Grid>
+          </Stack>
         </Box>
 
         <Backdrop
@@ -167,8 +161,6 @@ const ProjectDashboard = () => {
           onClose={handleEditClose}
           onSave={handleEditSave}
           disabled={loading}
-          initialRates={projectToEdit ? projectRates[projectToEdit.id] || [] : []}
-          selectRate={selectRate}
         />
       </Box>
     </Container>
