@@ -9,12 +9,13 @@ import {
   Chip,
   IconButton,
   Tooltip,
-  Divider,
   Alert,
   Skeleton,
   Fade,
   Collapse,
-  Paper
+  Paper,
+  Tabs,
+  Tab
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -24,6 +25,25 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import Visibility from '@mui/icons-material/Visibility';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { RatesTable } from './RatesTable';
+import { ProjectionChart } from './ProjectionChart';
+
+function TabPanel({ children, value, index, ...other }) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`project-tabpanel-${index}`}
+      aria-labelledby={`project-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ py: 2 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 
 export const ProjectCard = ({
   project,
@@ -34,10 +54,11 @@ export const ProjectCard = ({
   selectRate,
   calculating
 }) => {
-  const [showRatesTable, setShowRatesTable] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [selectedRateDetails, setSelectedRateDetails] = useState(null);
   const [error, setError] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [tabValue, setTabValue] = useState(0);
 
   useEffect(() => {
     const calculateInitialRates = async () => {
@@ -61,10 +82,14 @@ export const ProjectCard = ({
     }
   }, [project.selected_rate, calculatedRates, calculating, isInitialLoad]);
 
-  const toggleRatesTable = () => setShowRatesTable((prev) => !prev);
+  const toggleDetails = () => setShowDetails((prev) => !prev);
   const handleRateSelect = (rate) => {
     selectRate(project.id, rate);
     setSelectedRateDetails(rate);
+  };
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
   };
 
   const CardContentSkeleton = () => (
@@ -247,15 +272,16 @@ export const ProjectCard = ({
       <Fade in={!isInitialLoad} timeout={400}>
         <CardActions sx={{ justifyContent: 'space-between', px: 3, pb: 3, pt: 0 }}>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Tooltip title="View Rates">
+            <Tooltip title={showDetails ? "Hide Details" : "Show Details"}>
               <IconButton
                 size="small"
-                onClick={toggleRatesTable}
+                onClick={toggleDetails}
                 disabled={calculating || error}
                 sx={{
-                  bgcolor: 'action.hover',
+                  bgcolor: showDetails ? 'primary.main' : 'action.hover',
+                  color: showDetails ? 'white' : 'inherit',
                   '&:hover': {
-                    bgcolor: 'action.selected'
+                    bgcolor: showDetails ? 'primary.dark' : 'action.selected'
                   }
                 }}
               >
@@ -299,15 +325,44 @@ export const ProjectCard = ({
         </CardActions>
       </Fade>
 
-      <Collapse in={showRatesTable && calculatedRates.length > 0} timeout={300}>
-        {showRatesTable && calculatedRates.length > 0 && (
+      <Collapse in={showDetails && calculatedRates.length > 0} timeout={300}>
+        {showDetails && calculatedRates.length > 0 && (
           <Box sx={{ px: 3, pb: 3 }}>
-            <RatesTable
-              rates={calculatedRates}
-              onSelect={handleRateSelect}
-              disabled={false}
-              selectedRate={project.selected_rate}
-            />
+            <Paper
+              elevation={0}
+              sx={{
+                bgcolor: 'background.default',
+                borderRadius: 2
+              }}
+            >
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                indicatorColor="primary"
+                textColor="primary"
+                variant="fullWidth"
+              >
+                <Tab label="Rates" />
+                <Tab label="Projections" />
+              </Tabs>
+
+              <TabPanel value={tabValue} index={0}>
+                <RatesTable
+                  rates={calculatedRates}
+                  onSelect={handleRateSelect}
+                  disabled={false}
+                  selectedRate={project.selected_rate}
+                />
+              </TabPanel>
+
+              <TabPanel value={tabValue} index={1}>
+                <ProjectionChart
+                  selectedRate={selectedRateDetails}
+                  project={project}
+                  yearlyCost={selectedRateDetails.first_year_cost}
+                />
+              </TabPanel>
+            </Paper>
           </Box>
         )}
       </Collapse>
