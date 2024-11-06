@@ -11,7 +11,6 @@ import {
   Tooltip,
   Alert,
   Skeleton,
-  Fade,
   Collapse,
   Paper,
   Tabs,
@@ -59,34 +58,36 @@ export const ProjectCard = ({
   const [showDetails, setShowDetails] = useState(false);
   const [selectedRateDetails, setSelectedRateDetails] = useState(null);
   const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [tabValue, setTabValue] = useState(0);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [hasCalculatedRates, setHasCalculatedRates] = useState(false);
 
   useEffect(() => {
-    const calculateInitialRates = async () => {
-      await onCalculateRates();
-      setTimeout(() => {
-        setIsInitialLoad(false);
-        setLoading(false);
-      }, 300);
-    };
-    calculateInitialRates();
-  }, [onCalculateRates]);
-
-  useEffect(() => {
-    if (!isInitialLoad) {
-      if (project.selected_rate && calculatedRates.length > 0) {
-        const rateDetails = calculatedRates.find(
-          rate => rate.rate_name === project.selected_rate
-        );
-        setSelectedRateDetails(rateDetails);
-      } else {
-        setSelectedRateDetails(null);
-      }
-      setError(!calculating && calculatedRates.length === 0);
+    if (project.selected_rate && calculatedRates.length > 0) {
+      const rateDetails = calculatedRates.find(
+        rate => rate.rate_name === project.selected_rate
+      );
+      setSelectedRateDetails(rateDetails);
+    } else {
+      setSelectedRateDetails(null);
     }
-  }, [project.selected_rate, calculatedRates, calculating, isInitialLoad]);
+    setError(!calculating && calculatedRates.length === 0 && hasCalculatedRates);
+  }, [project.selected_rate, calculatedRates, calculating, hasCalculatedRates]);
+
+  const handleShowDetails = async () => {
+    if (!showDetails && !hasCalculatedRates) {
+      setLoading(true);
+      try {
+        await onCalculateRates();
+        setHasCalculatedRates(true);
+      } catch (err) {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+    setShowDetails(!showDetails);
+  };
 
   const handleRateSelect = (rate) => {
     if (rate && project?.id) {
@@ -159,85 +160,83 @@ export const ProjectCard = ({
         }
       }}
     >
-      <Fade in={!loading} timeout={400}>
-        <CardContent sx={{ flexGrow: 1, p: 3 }}>
-          <Box sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            mb: 3
-          }}>
-            <Typography variant="h6" component="div" sx={{ fontWeight: 600, color: 'primary.main' }}>
-              {project?.name || 'Untitled Project'}
-            </Typography>
-            <Chip
-              label={project?.selected_rate || 'No Rate Selected'}
-              size="small"
-              color={project?.selected_rate ? "primary" : "default"}
-              sx={{ fontWeight: 500, px: 1, borderRadius: 1.5 }}
-            />
-          </Box>
+      <CardContent sx={{ flexGrow: 1, p: 3 }}>
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          mb: 3
+        }}>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 600, color: 'primary.main' }}>
+            {project?.name || 'Untitled Project'}
+          </Typography>
+          <Chip
+            label={project?.selected_rate || 'No Rate Selected'}
+            size="small"
+            color={project?.selected_rate ? "primary" : "default"}
+            sx={{ fontWeight: 500, px: 1, borderRadius: 1.5 }}
+          />
+        </Box>
 
-          <Paper elevation={0} sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 2 }}>
-            <Grid container spacing={2.5}>
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <LocationOnIcon color="primary" fontSize="small" />
-                  <Typography variant="body2">
-                    {project?.address || 'No address provided'}
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <ElectricMeterIcon color="primary" fontSize="small" />
-                  <Typography variant="body2">
-                    {project?.consumption ? `${project.consumption.toLocaleString()} kWh/year` : 'No consumption data'}
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <ShowChartIcon color="primary" fontSize="small" />
-                  <Typography variant="body2">
-                    {project?.percentage ? `${project.percentage}% Escalator` : 'No escalator set'}
-                  </Typography>
-                </Box>
-              </Grid>
+        <Paper elevation={0} sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 2 }}>
+          <Grid container spacing={2.5}>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <LocationOnIcon color="primary" fontSize="small" />
+                <Typography variant="body2">
+                  {project?.address || 'No address provided'}
+                </Typography>
+              </Box>
             </Grid>
-          </Paper>
+            <Grid item xs={12} sm={6}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <ElectricMeterIcon color="primary" fontSize="small" />
+                <Typography variant="body2">
+                  {project?.consumption ? `${project.consumption.toLocaleString()} kWh/year` : 'No consumption data'}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <ShowChartIcon color="primary" fontSize="small" />
+                <Typography variant="body2">
+                  {project?.percentage ? `${project.percentage}% Escalator` : 'No escalator set'}
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </Paper>
 
-          <Collapse in={!!selectedRateDetails}>
-            <RateDetailsSection />
-          </Collapse>
+        <Collapse in={!!selectedRateDetails}>
+          <RateDetailsSection />
+        </Collapse>
 
-          {project?.description && (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                mt: 2,
-                display: '-webkit-box',
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                lineHeight: 1.6
-              }}
-            >
-              {project.description}
-            </Typography>
+        {project?.description && (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              mt: 2,
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              lineHeight: 1.6
+            }}
+          >
+            {project.description}
+          </Typography>
+        )}
+
+        <Collapse in={error}>
+          {error && (
+            <Alert severity="error" sx={{ mt: 2, borderRadius: 1 }}>
+              No rates found for this project
+            </Alert>
           )}
-
-          <Collapse in={error}>
-            {error && (
-              <Alert severity="error" sx={{ mt: 2, borderRadius: 1 }}>
-                No rates found for this project
-              </Alert>
-            )}
-          </Collapse>
-        </CardContent>
-      </Fade>
+        </Collapse>
+      </CardContent>
 
       {loading && (
         <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, p: 3 }}>
@@ -245,57 +244,55 @@ export const ProjectCard = ({
         </Box>
       )}
 
-      <Fade in={!loading} timeout={400}>
-        <CardActions sx={{ justifyContent: 'space-between', px: 3, pb: 3, pt: 0 }}>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Tooltip title={showDetails ? "Hide Details" : "Show Details"}>
-              <IconButton
-                size="small"
-                onClick={() => setShowDetails(prev => !prev)}
-                disabled={calculating || error}
-                sx={{
-                  bgcolor: showDetails ? 'primary.main' : 'action.hover',
-                  color: showDetails ? 'white' : 'inherit',
-                  '&:hover': {
-                    bgcolor: showDetails ? 'primary.dark' : 'action.selected'
-                  }
-                }}
-              >
-                <Visibility fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Tooltip title="Edit Project">
-              <IconButton
-                size="small"
-                onClick={() => project && onEdit(project)}
-                sx={{
-                  bgcolor: 'action.hover',
-                  '&:hover': { bgcolor: 'action.selected' }
-                }}
-              >
-                <EditIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Delete Project">
-              <IconButton
-                size="small"
-                onClick={() => project && onDelete(project)}
-                sx={{
-                  bgcolor: 'error.light',
-                  '&:hover': {
-                    bgcolor: 'error.main',
-                    '& .MuiSvgIcon-root': { color: 'white' }
-                  }
-                }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </CardActions>
-      </Fade>
+      <CardActions sx={{ justifyContent: 'space-between', px: 3, pb: 3, pt: 0 }}>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title={showDetails ? "Hide Details" : "Show Details"}>
+            <IconButton
+              size="small"
+              onClick={handleShowDetails}
+              disabled={calculating}
+              sx={{
+                bgcolor: showDetails ? 'primary.main' : 'action.hover',
+                color: showDetails ? 'white' : 'inherit',
+                '&:hover': {
+                  bgcolor: showDetails ? 'primary.dark' : 'action.selected'
+                }
+              }}
+            >
+              <Visibility fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title="Edit Project">
+            <IconButton
+              size="small"
+              onClick={() => project && onEdit(project)}
+              sx={{
+                bgcolor: 'action.hover',
+                '&:hover': { bgcolor: 'action.selected' }
+              }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete Project">
+            <IconButton
+              size="small"
+              onClick={() => project && onDelete(project)}
+              sx={{
+                bgcolor: 'error.light',
+                '&:hover': {
+                  bgcolor: 'error.main',
+                  '& .MuiSvgIcon-root': { color: 'white' }
+                }
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </CardActions>
 
       <Collapse in={showDetails && calculatedRates?.length > 0}>
         <Box sx={{ px: 3, pb: 3 }}>
