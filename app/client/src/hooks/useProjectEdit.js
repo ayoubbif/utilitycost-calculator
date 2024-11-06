@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 
-export const useProjectEdit = ({ project, selectRate, initialRates = [], onSave, onClose }) => {
+export const useProjectEdit = ({
+  project,
+  selectRate,
+  initialRates = [],
+  onSave,
+  onClose
+}) => {
   const [editedProject, setEditedProject] = useState({
     name: '',
     address: '',
@@ -31,7 +37,10 @@ export const useProjectEdit = ({ project, selectRate, initialRates = [], onSave,
     e.preventDefault();
 
     const [rateName, utility] = editedProject.selectedRate.split(' - ');
-    if (editedProject.selectedRate && editedProject.selectedRate !== project.selected_rate) {
+    if (
+      editedProject.selectedRate &&
+      editedProject.selectedRate !== project.selected_rate
+    ) {
       await selectRate(project.id, {
         rate_name: rateName,
         utility: utility
@@ -53,7 +62,7 @@ export const useProjectEdit = ({ project, selectRate, initialRates = [], onSave,
 
   return {
     editedProject,
-    availableRates: initialRates.map(rate => ({
+    availableRates: initialRates.map((rate) => ({
       ...rate,
       uniqueId: `${rate.rate_name}`
     })),

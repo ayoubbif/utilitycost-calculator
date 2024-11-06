@@ -36,7 +36,7 @@ const ProjectDashboard = () => {
       setCalculating(true);
       try {
         const rates = await calculateRates(projectId);
-        setProjectRates(prev => ({
+        setProjectRates((prev) => ({
           ...prev,
           [projectId]: rates
         }));
@@ -62,9 +62,11 @@ const ProjectDashboard = () => {
     try {
       const success = await updateProject(projectId, projectData);
       if (success) {
-        if (projectData.consumption !== projectToEdit.consumption ||
-            projectData.percentage !== projectToEdit.percentage) {
-          setProjectRates(prev => {
+        if (
+          projectData.consumption !== projectToEdit.consumption ||
+          projectData.percentage !== projectToEdit.percentage
+        ) {
+          setProjectRates((prev) => {
             const newRates = { ...prev };
             delete newRates[projectId];
             return newRates;
@@ -99,7 +101,7 @@ const ProjectDashboard = () => {
     try {
       const success = await deleteProject(projectId);
       if (success) {
-        setProjectRates(prev => {
+        setProjectRates((prev) => {
           const newRates = { ...prev };
           delete newRates[projectId];
           return newRates;

@@ -9,12 +9,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import {
-  Box,
-  Paper,
-  ToggleButton,
-  ToggleButtonGroup,
-} from '@mui/material';
+import { Box, Paper, ToggleButton, ToggleButtonGroup } from '@mui/material';
 
 export const ProjectionChart = ({ selectedRate, project, yearlyCost }) => {
   const [view, setView] = useState('cumulativeCost');
@@ -23,7 +18,9 @@ export const ProjectionChart = ({ selectedRate, project, yearlyCost }) => {
   const isLeapYear = (year) => {
     const currentYear = new Date().getFullYear();
     const targetYear = currentYear + year;
-    return (targetYear % 4 === 0 && targetYear % 100 !== 0) || targetYear % 400 === 0;
+    return (
+      (targetYear % 4 === 0 && targetYear % 100 !== 0) || targetYear % 400 === 0
+    );
   };
 
   // Generate 20 years of data with leap year adjustments
@@ -45,12 +42,13 @@ export const ProjectionChart = ({ selectedRate, project, yearlyCost }) => {
       } else {
         yearlyCost = firstYearCost * Math.pow(1 + escalator, year);
         if (isLeapYear(year)) {
-          yearlyCost *= (366 / 365);
+          yearlyCost *= 366 / 365;
         }
       }
 
-      const previousCosts = data.map(d => d.cost);
-      const cumulativeCost = previousCosts.reduce((sum, cost) => sum + cost, 0) + yearlyCost;
+      const previousCosts = data.map((d) => d.cost);
+      const cumulativeCost =
+        previousCosts.reduce((sum, cost) => sum + cost, 0) + yearlyCost;
 
       data.push({
         year,
@@ -86,7 +84,10 @@ export const ProjectionChart = ({ selectedRate, project, yearlyCost }) => {
   const formatTooltip = (value, name) => {
     switch (name) {
       case 'cumulativeCost':
-        return [`$${value.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, 'Cumulative Cost'];
+        return [
+          `$${value.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+          'Cumulative Cost'
+        ];
       case 'rate':
         return [`$${value.toFixed(4)}/kWh`, 'Rate'];
       default:
@@ -105,12 +106,8 @@ export const ProjectionChart = ({ selectedRate, project, yearlyCost }) => {
         size="small"
         sx={{ mb: 2 }}
       >
-        <ToggleButton value="cumulativeCost">
-          Cumulative Cost
-        </ToggleButton>
-        <ToggleButton value="rate">
-          Rate
-        </ToggleButton>
+        <ToggleButton value="cumulativeCost">Cumulative Cost</ToggleButton>
+        <ToggleButton value="rate">Rate</ToggleButton>
       </ToggleButtonGroup>
 
       <Paper
@@ -138,15 +135,19 @@ export const ProjectionChart = ({ selectedRate, project, yearlyCost }) => {
             <YAxis
               tickFormatter={formatYAxis}
               label={{
-                value: view === 'cumulativeCost' ? 'Cumulative Cost ($)'
-                  : 'Rate ($/kWh)',
+                value:
+                  view === 'cumulativeCost'
+                    ? 'Cumulative Cost ($)'
+                    : 'Rate ($/kWh)',
                 angle: -90,
                 position: 'insideLeft'
               }}
             />
             <Tooltip
               formatter={formatTooltip}
-              labelFormatter={(year) => `Year ${year}${projectionData[year]?.isLeapYear ? ' (Leap Year)' : ''}`}
+              labelFormatter={(year) =>
+                `Year ${year}${projectionData[year]?.isLeapYear ? ' (Leap Year)' : ''}`
+              }
             />
             <Legend />
             <Line
@@ -163,4 +164,3 @@ export const ProjectionChart = ({ selectedRate, project, yearlyCost }) => {
     </Box>
   );
 };
-

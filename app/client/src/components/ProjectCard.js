@@ -23,7 +23,7 @@ import {
   LocationOn as LocationOnIcon,
   ShowChart as ShowChartIcon,
   Visibility,
-  AttachMoney as AttachMoneyIcon,
+  AttachMoney as AttachMoneyIcon
 } from '@mui/icons-material';
 import { RatesTable } from './RatesTable';
 import { ProjectionChart } from './ProjectionChart';
@@ -37,11 +37,7 @@ function TabPanel({ children, value, index, ...other }) {
       aria-labelledby={`project-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box sx={{ py: 2 }}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box sx={{ py: 2 }}>{children}</Box>}
     </div>
   );
 }
@@ -65,13 +61,15 @@ export const ProjectCard = ({
   useEffect(() => {
     if (project.selected_rate && calculatedRates.length > 0) {
       const rateDetails = calculatedRates.find(
-        rate => rate.rate_name === project.selected_rate
+        (rate) => rate.rate_name === project.selected_rate
       );
       setSelectedRateDetails(rateDetails);
     } else {
       setSelectedRateDetails(null);
     }
-    setError(!calculating && calculatedRates.length === 0 && hasCalculatedRates);
+    setError(
+      !calculating && calculatedRates.length === 0 && hasCalculatedRates
+    );
   }, [project.selected_rate, calculatedRates, calculating, hasCalculatedRates]);
 
   const handleShowDetails = async () => {
@@ -98,7 +96,14 @@ export const ProjectCard = ({
 
   const CardContentSkeleton = () => (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          mb: 2
+        }}
+      >
         <Skeleton width={150} height={32} />
         <Skeleton width={100} height={24} />
       </Box>
@@ -120,21 +125,38 @@ export const ProjectCard = ({
     if (!selectedRateDetails) return null;
 
     return (
-      <Paper elevation={0} sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 2 }}>
+      <Paper
+        elevation={0}
+        sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 2 }}
+      >
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <AttachMoneyIcon sx={{ color: 'primary.dark' }} fontSize="small" />
-              <Typography variant="body2" sx={{ color: 'primary.dark', fontWeight: 700 }}>
-                Avg Rate: ${selectedRateDetails.avg_rate?.toFixed(4) || '0.0000'}/kWh
+              <AttachMoneyIcon
+                sx={{ color: 'primary.dark' }}
+                fontSize="small"
+              />
+              <Typography
+                variant="body2"
+                sx={{ color: 'primary.dark', fontWeight: 700 }}
+              >
+                Avg Rate: $
+                {selectedRateDetails.avg_rate?.toFixed(4) || '0.0000'}/kWh
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} sm={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <AttachMoneyIcon sx={{ color: 'primary.dark' }} fontSize="small" />
-              <Typography variant="body2" sx={{ color: 'primary.dark', fontWeight: 700 }}>
-                First Year: ${selectedRateDetails.first_year_cost?.toFixed(2) || '0.00'}
+              <AttachMoneyIcon
+                sx={{ color: 'primary.dark' }}
+                fontSize="small"
+              />
+              <Typography
+                variant="body2"
+                sx={{ color: 'primary.dark', fontWeight: 700 }}
+              >
+                First Year: $
+                {selectedRateDetails.first_year_cost?.toFixed(2) || '0.00'}
               </Typography>
             </Box>
           </Grid>
@@ -161,24 +183,33 @@ export const ProjectCard = ({
       }}
     >
       <CardContent sx={{ flexGrow: 1, p: 3 }}>
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          mb: 3
-        }}>
-          <Typography variant="h6" component="div" sx={{ fontWeight: 600, color: 'primary.main' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            mb: 3
+          }}
+        >
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ fontWeight: 600, color: 'primary.main' }}
+          >
             {project?.name || 'Untitled Project'}
           </Typography>
           <Chip
             label={project?.selected_rate || 'No Rate Selected'}
             size="small"
-            color={project?.selected_rate ? "primary" : "default"}
+            color={project?.selected_rate ? 'primary' : 'default'}
             sx={{ fontWeight: 500, px: 1, borderRadius: 1.5 }}
           />
         </Box>
 
-        <Paper elevation={0} sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 2 }}>
+        <Paper
+          elevation={0}
+          sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 2 }}
+        >
           <Grid container spacing={2.5}>
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -192,7 +223,9 @@ export const ProjectCard = ({
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <ElectricMeterIcon color="primary" fontSize="small" />
                 <Typography variant="body2">
-                  {project?.consumption ? `${project.consumption.toLocaleString()} kWh/year` : 'No consumption data'}
+                  {project?.consumption
+                    ? `${project.consumption.toLocaleString()} kWh/year`
+                    : 'No consumption data'}
                 </Typography>
               </Box>
             </Grid>
@@ -200,7 +233,9 @@ export const ProjectCard = ({
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <ShowChartIcon color="primary" fontSize="small" />
                 <Typography variant="body2">
-                  {project?.percentage ? `${project.percentage}% Escalator` : 'No escalator set'}
+                  {project?.percentage
+                    ? `${project.percentage}% Escalator`
+                    : 'No escalator set'}
                 </Typography>
               </Box>
             </Grid>
@@ -244,9 +279,11 @@ export const ProjectCard = ({
         </Box>
       )}
 
-      <CardActions sx={{ justifyContent: 'space-between', px: 3, pb: 3, pt: 0 }}>
+      <CardActions
+        sx={{ justifyContent: 'space-between', px: 3, pb: 3, pt: 0 }}
+      >
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title={showDetails ? "Hide Details" : "Show Details"}>
+          <Tooltip title={showDetails ? 'Hide Details' : 'Show Details'}>
             <IconButton
               size="small"
               onClick={handleShowDetails}
@@ -296,7 +333,10 @@ export const ProjectCard = ({
 
       <Collapse in={showDetails && calculatedRates?.length > 0}>
         <Box sx={{ px: 3, pb: 3 }}>
-          <Paper elevation={0} sx={{ bgcolor: 'background.default', borderRadius: 2 }}>
+          <Paper
+            elevation={0}
+            sx={{ bgcolor: 'background.default', borderRadius: 2 }}
+          >
             <Tabs
               value={tabValue}
               onChange={(_, newValue) => setTabValue(newValue)}

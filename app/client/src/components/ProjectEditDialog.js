@@ -20,11 +20,7 @@ export const ProjectEditDialog = ({
   onSave,
   disabled
 }) => {
-  const {
-    editedProject,
-    handleInputChange,
-    handleSubmit
-  } = useProjectEdit({
+  const { editedProject, handleInputChange, handleSubmit } = useProjectEdit({
     project,
     onSave,
     onClose
