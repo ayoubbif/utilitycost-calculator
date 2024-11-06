@@ -17,13 +17,15 @@ import {
   Tabs,
   Tab
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ElectricMeterIcon from '@mui/icons-material/ElectricMeter';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import Visibility from '@mui/icons-material/Visibility';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  ElectricMeter as ElectricMeterIcon,
+  LocationOn as LocationOnIcon,
+  ShowChart as ShowChartIcon,
+  Visibility,
+  AttachMoney as AttachMoneyIcon,
+} from '@mui/icons-material';
 import { RatesTable } from './RatesTable';
 import { ProjectionChart } from './ProjectionChart';
 
@@ -49,24 +51,28 @@ export const ProjectCard = ({
   project,
   onEdit,
   onDelete,
-  calculatedRates,
+  calculatedRates = [],
   onCalculateRates,
   selectRate,
-  calculating
+  calculating = false
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedRateDetails, setSelectedRateDetails] = useState(null);
   const [error, setError] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     const calculateInitialRates = async () => {
       await onCalculateRates();
-      setTimeout(() => setIsInitialLoad(false), 300);
+      setTimeout(() => {
+        setIsInitialLoad(false);
+        setLoading(false);
+      }, 300);
     };
     calculateInitialRates();
-  }, []);
+  }, [onCalculateRates]);
 
   useEffect(() => {
     if (!isInitialLoad) {
@@ -82,14 +88,11 @@ export const ProjectCard = ({
     }
   }, [project.selected_rate, calculatedRates, calculating, isInitialLoad]);
 
-  const toggleDetails = () => setShowDetails((prev) => !prev);
   const handleRateSelect = (rate) => {
-    selectRate(project.id, rate);
-    setSelectedRateDetails(rate);
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
+    if (rate && project?.id) {
+      selectRate(project.id, rate);
+      setSelectedRateDetails(rate);
+    }
   };
 
   const CardContentSkeleton = () => (
@@ -112,6 +115,33 @@ export const ProjectCard = ({
     </Box>
   );
 
+  const RateDetailsSection = () => {
+    if (!selectedRateDetails) return null;
+
+    return (
+      <Paper elevation={0} sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 2 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <AttachMoneyIcon sx={{ color: 'primary.dark' }} fontSize="small" />
+              <Typography variant="body2" sx={{ color: 'primary.dark', fontWeight: 700 }}>
+                Avg Rate: ${selectedRateDetails.avg_rate?.toFixed(4) || '0.0000'}/kWh
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <AttachMoneyIcon sx={{ color: 'primary.dark' }} fontSize="small" />
+              <Typography variant="body2" sx={{ color: 'primary.dark', fontWeight: 700 }}>
+                First Year: ${selectedRateDetails.first_year_cost?.toFixed(2) || '0.00'}
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+    );
+  };
+
   return (
     <Card
       elevation={2}
@@ -129,7 +159,7 @@ export const ProjectCard = ({
         }
       }}
     >
-      <Fade in={!isInitialLoad} timeout={400}>
+      <Fade in={!loading} timeout={400}>
         <CardContent sx={{ flexGrow: 1, p: 3 }}>
           <Box sx={{
             display: 'flex',
@@ -137,43 +167,24 @@ export const ProjectCard = ({
             alignItems: 'flex-start',
             mb: 3
           }}>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{
-                fontWeight: 600,
-                color: 'primary.main'
-              }}
-            >
-              {project.name}
+            <Typography variant="h6" component="div" sx={{ fontWeight: 600, color: 'primary.main' }}>
+              {project?.name || 'Untitled Project'}
             </Typography>
             <Chip
-              label={project.selected_rate || 'No Rate Selected'}
+              label={project?.selected_rate || 'No Rate Selected'}
               size="small"
-              color={project.selected_rate ? "primary" : "default"}
-              sx={{
-                fontWeight: 500,
-                px: 1,
-                borderRadius: 1.5
-              }}
+              color={project?.selected_rate ? "primary" : "default"}
+              sx={{ fontWeight: 500, px: 1, borderRadius: 1.5 }}
             />
           </Box>
 
-          <Paper
-            elevation={0}
-            sx={{
-              bgcolor: 'background.default',
-              p: 2,
-              borderRadius: 2,
-              mb: 2
-            }}
-          >
+          <Paper elevation={0} sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 2 }}>
             <Grid container spacing={2.5}>
               <Grid item xs={12}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <LocationOnIcon color="primary" fontSize="small" />
                   <Typography variant="body2">
-                    {project.address || 'No address provided'}
+                    {project?.address || 'No address provided'}
                   </Typography>
                 </Box>
               </Grid>
@@ -181,7 +192,7 @@ export const ProjectCard = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <ElectricMeterIcon color="primary" fontSize="small" />
                   <Typography variant="body2">
-                    {project.consumption ? `${project.consumption.toLocaleString()} kWh/year` : 'No consumption data'}
+                    {project?.consumption ? `${project.consumption.toLocaleString()} kWh/year` : 'No consumption data'}
                   </Typography>
                 </Box>
               </Grid>
@@ -189,47 +200,18 @@ export const ProjectCard = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <ShowChartIcon color="primary" fontSize="small" />
                   <Typography variant="body2">
-                    {project.percentage ? `${project.percentage}% Escalator` : 'No escalator set'}
+                    {project?.percentage ? `${project.percentage}% Escalator` : 'No escalator set'}
                   </Typography>
                 </Box>
               </Grid>
             </Grid>
           </Paper>
 
-          <Collapse in={!!selectedRateDetails} timeout={300}>
-            {selectedRateDetails && (
-              <Paper
-                elevation={0}
-                sx={{
-                  bgcolor: 'background.default',
-                  p: 2,
-                  borderRadius: 2,
-                  mb: 2
-                }}
-              >
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <AttachMoneyIcon sx={{ color: 'primary.dark' }} fontSize="small" />
-                      <Typography variant="body2" sx={{ color: 'primary.dark', fontWeight: 700 }}>
-                        Avg Rate: ${selectedRateDetails.avg_rate.toFixed(4)}/kWh
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <AttachMoneyIcon sx={{ color: 'primary.dark' }} fontSize="small" />
-                      <Typography variant="body2" sx={{ color: 'primary.dark', fontWeight: 700 }}>
-                        First Year: ${selectedRateDetails.first_year_cost.toFixed(2)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </Paper>
-            )}
+          <Collapse in={!!selectedRateDetails}>
+            <RateDetailsSection />
           </Collapse>
 
-          {project.description && (
+          {project?.description && (
             <Typography
               variant="body2"
               color="text.secondary"
@@ -247,15 +229,9 @@ export const ProjectCard = ({
             </Typography>
           )}
 
-          <Collapse in={error} timeout={300}>
+          <Collapse in={error}>
             {error && (
-              <Alert
-                severity="error"
-                sx={{
-                  mt: 2,
-                  borderRadius: 1
-                }}
-              >
+              <Alert severity="error" sx={{ mt: 2, borderRadius: 1 }}>
                 No rates found for this project
               </Alert>
             )}
@@ -263,19 +239,19 @@ export const ProjectCard = ({
         </CardContent>
       </Fade>
 
-      {isInitialLoad && (
+      {loading && (
         <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, p: 3 }}>
           <CardContentSkeleton />
         </Box>
       )}
 
-      <Fade in={!isInitialLoad} timeout={400}>
+      <Fade in={!loading} timeout={400}>
         <CardActions sx={{ justifyContent: 'space-between', px: 3, pb: 3, pt: 0 }}>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title={showDetails ? "Hide Details" : "Show Details"}>
               <IconButton
                 size="small"
-                onClick={toggleDetails}
+                onClick={() => setShowDetails(prev => !prev)}
                 disabled={calculating || error}
                 sx={{
                   bgcolor: showDetails ? 'primary.main' : 'action.hover',
@@ -293,12 +269,10 @@ export const ProjectCard = ({
             <Tooltip title="Edit Project">
               <IconButton
                 size="small"
-                onClick={() => onEdit(project)}
+                onClick={() => project && onEdit(project)}
                 sx={{
                   bgcolor: 'action.hover',
-                  '&:hover': {
-                    bgcolor: 'action.selected'
-                  }
+                  '&:hover': { bgcolor: 'action.selected' }
                 }}
               >
                 <EditIcon fontSize="small" />
@@ -307,14 +281,12 @@ export const ProjectCard = ({
             <Tooltip title="Delete Project">
               <IconButton
                 size="small"
-                onClick={() => onDelete(project)}
+                onClick={() => project && onDelete(project)}
                 sx={{
                   bgcolor: 'error.light',
                   '&:hover': {
                     bgcolor: 'error.main',
-                    '& .MuiSvgIcon-root': {
-                      color: 'white'
-                    }
+                    '& .MuiSvgIcon-root': { color: 'white' }
                   }
                 }}
               >
@@ -325,46 +297,44 @@ export const ProjectCard = ({
         </CardActions>
       </Fade>
 
-      <Collapse in={showDetails && calculatedRates.length > 0} timeout={300}>
-        {showDetails && calculatedRates.length > 0 && (
-          <Box sx={{ px: 3, pb: 3 }}>
-            <Paper
-              elevation={0}
-              sx={{
-                bgcolor: 'background.default',
-                borderRadius: 2
-              }}
+      <Collapse in={showDetails && calculatedRates?.length > 0}>
+        <Box sx={{ px: 3, pb: 3 }}>
+          <Paper elevation={0} sx={{ bgcolor: 'background.default', borderRadius: 2 }}>
+            <Tabs
+              value={tabValue}
+              onChange={(_, newValue) => setTabValue(newValue)}
+              indicatorColor="primary"
+              textColor="primary"
+              variant="fullWidth"
             >
-              <Tabs
-                value={tabValue}
-                onChange={handleTabChange}
-                indicatorColor="primary"
-                textColor="primary"
-                variant="fullWidth"
-              >
-                <Tab label="Rates" />
-                <Tab label="Projections" />
-              </Tabs>
+              <Tab label="Rates" />
+              <Tab label="Projections" />
+            </Tabs>
 
-              <TabPanel value={tabValue} index={0}>
-                <RatesTable
-                  rates={calculatedRates}
-                  onSelect={handleRateSelect}
-                  disabled={false}
-                  selectedRate={project.selected_rate}
-                />
-              </TabPanel>
+            <TabPanel value={tabValue} index={0}>
+              <RatesTable
+                rates={calculatedRates}
+                onSelect={handleRateSelect}
+                disabled={false}
+                selectedRate={project?.selected_rate}
+              />
+            </TabPanel>
 
-              <TabPanel value={tabValue} index={1}>
+            <TabPanel value={tabValue} index={1}>
+              {selectedRateDetails ? (
                 <ProjectionChart
                   selectedRate={selectedRateDetails}
                   project={project}
-                  yearlyCost={selectedRateDetails.first_year_cost}
+                  yearlyCost={selectedRateDetails.first_year_cost || 0}
                 />
-              </TabPanel>
-            </Paper>
-          </Box>
-        )}
+              ) : (
+                <Typography variant="body2" sx={{ textAlign: 'center', py: 2 }}>
+                  Please select a rate to view projections
+                </Typography>
+              )}
+            </TabPanel>
+          </Paper>
+        </Box>
       </Collapse>
     </Card>
   );
